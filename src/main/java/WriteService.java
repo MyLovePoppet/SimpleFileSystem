@@ -14,11 +14,13 @@ public class WriteService extends IService {
 
     @Override
     public ReturnState service(Element element, String... args) {
+        /*
         try {
             Thread.sleep(30000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        */
         byte[] bytes = args[1].getBytes();
         long newStart = newPosition;
         long newSize = bytes.length;

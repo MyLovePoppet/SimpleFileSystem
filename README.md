@@ -1,13 +1,18 @@
-姓名：舒钦瑜    学号：2017152044    操作系统大作业
+- [创建一个100M的文件](#创建一个100m的文件)
+- [文件系统数据结构以及操作接口](#文件系统数据结构以及操作接口)
+- [文件系统接口操作实现](#文件系统接口操作实现)
+  - [ls操作](#ls操作)
+  - [cd操作](#cd操作)
+  - [mkdir操作](#mkdir操作)
+  - [rmdir操作](#rmdir操作)
+  - [open操作](#open操作)
+  - [read操作](#read操作)
+  - [write操作](#write操作)
+- [信号量互斥访问](#信号量互斥访问)
+- [实验感想](#实验感想)
 
-1.	创建一个100M的文件或者创建一个100M的共享内存
-2.	尝试自行设计一个C语言小程序，使用步骤1分配的100M空间（共享内存或mmap），然后假设这100M空间为一个空白磁盘，设计一个简单的文件系统管理这个空白磁盘，给出文件和目录管理的基本数据结构，并画出文件系统基本结构图，以及基本操作接口。（20分）
-3.	在步骤1的基础上实现部分文件操作接口操作，创建目录mkdir，删除目录rmdir，修改名称，创建文件open，修改文件，删除文件rm，查看文件系统目录结构ls。（30分）
-4.	参考进程同步的相关章节，通过信号量机制实现多个终端对上述文件系统的互斥访问，系统中的一个文件允许多个进程读，不允许写操作；或者只允许一个写操作，不允许读。（20分）
-5.	实验报告书写质量（30分）
-
-## 创建一个100M的文件
-我们除了需要创建这个100MB的文件之外，我们还得创建如之前所说的一个xml配置文件来记录信息。我们设计一个FileSystem类来进行文件系统的操作，我们可以在其构造函数内进行初始化是读入以前创建好的文件系统或者是创建一个新的文件系统，即函数申明如下：
+# 创建一个100M的文件
+我们除了需要创建这个100MB的文件之外，我们还得创建一个xml配置文件来记录信息(具体原因后续会进行解释)。我们设计一个FileSystem类来进行文件系统的操作，可以在其构造函数内进行初始化是读入以前创建好的文件系统或者是创建一个新的文件系统，即函数申明如下：
 ```Java
 /**
   * 构造函数
@@ -209,6 +214,31 @@ if (mkdirReturnState.returnCode == ReturnState.ReturnOK) {
 我们的测试运行结果如下图所示：
 
 ![](https://i.imgur.com/bBG4G6w.png)
+
+## rmdir操作
+我们的rmdir的操作命令类似于`rmdir A文件夹`表示删除A文件夹。
+
+删除文件夹的过程可分为两步，第一步是查找要删除的目录节点，第二步是找出该目录节点的所有的子节点中的文件节点，将文件系统内这些文件的位置标记为空，具体的代码实现如下：
+```Java
+if (rmdirReturnState.returnCode == ReturnState.ReturnOK) {
+    //获取所有的子节点
+    Elements elements = rmdirReturnState.returnElement.getAllElements();
+    //对每个子节点进行遍历
+    elements.forEach(element -> {
+        //对文件节点执行删除操作
+        if ("文件".equals(element.tagName())) {
+            long start = Long.parseLong(element.attr("文件起始"));
+            long end = Long.parseLong(element.attr("文件结束"));
+            long size = Long.parseLong(element.attr("文件大小"));
+            //移除文件所占空间，标记为空白处
+            fileOffsets.remove(new FileOffset(start, end));
+        }
+    });
+    updateXMLFile();
+} else {
+    System.out.println("No dir named as '" + strings[1] + "'! Please check!");
+}
+```
 ## open操作
 我们的open操作的命令类似于`open test1.cpp Hello,world,2017152044_舒钦瑜`表示我们创建一个在当前目录下创建一个test1.cpp，并初始化数据为`Hello,world,2017152044_舒钦瑜`
 
@@ -483,3 +513,5 @@ mutex.get(currentDir+name).releaseWrite();
 
 # 实验感想
 本次实验由于时间有限，而且不是特别熟悉C语言，所以在征得老师的同意下才选择使用比较熟悉的Java进行文件系统的实现，在实现过程中也学会到了很多内容，如基本的文件系统的管理，文件的创建，读取和写入，以及对基本的文件系统的命令操作也有所了解了，以及通过信号量来实现了对文件的互斥访问读写，总的来说收获还是很大，对整个操作系统学期学到的内容都复习了一遍，后续如果有时间的话还是想使用C语言来自己实现一遍，来巩固一下操作系统的知识。
+
+GitHub链接：[https://github.com/MyLovePoppet/SimpleFileSystem](https://github.com/MyLovePoppet/SimpleFileSystem)

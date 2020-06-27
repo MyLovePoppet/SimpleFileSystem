@@ -180,12 +180,16 @@ public class FileSystem {
             String[] strings = nextOp.split("\\s+");
             ReturnState rmdirReturnState = rmdirService.service(currentElement, strings[1]);
             if (rmdirReturnState.returnCode == ReturnState.ReturnOK) {
+                //获取所有的子节点
                 Elements elements = rmdirReturnState.returnElement.getAllElements();
+                //对每个子节点进行遍历
                 elements.forEach(element -> {
+                    //对文件节点执行删除操作
                     if ("文件".equals(element.tagName())) {
                         long start = Long.parseLong(element.attr("文件起始"));
                         long end = Long.parseLong(element.attr("文件结束"));
                         long size = Long.parseLong(element.attr("文件大小"));
+                        //移除文件所占空间，标记为空白处
                         fileOffsets.remove(new FileOffset(start, end));
                     }
                 });
